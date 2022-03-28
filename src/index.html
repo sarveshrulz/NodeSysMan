@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NodeSysMan</title>
+</head>
+<body>
+    <h1>Memory usage</h1>
+    <p>Memory</p>
+    <!-- <button type="submit" id="submit">Send message</button> -->
+
+    <script src="socket.io/socket.io.js"></script>
+    <script>
+        // const submit = document.getElementById("submit");
+        const socket = io();
+        // submit.addEventListener("click", () => {
+        //     socket.emit("message", "Hey from client");
+        // });
+        // socket.on("connect", () => {
+        //     console.log(socket.id);
+        // });
+        socket.on("server", (msg) => {
+            document.querySelector("p").innerText = msg;
+        });
+    </script>
+</body>
+</html>
