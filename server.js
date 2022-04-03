@@ -5,6 +5,7 @@ const io = require("socket.io")(http);
 const path = require("path")
 const port = process.env.PORT || 3000
 const {NodeSSH} = require("node-ssh")
+let connected = false
 
 app.use(express.urlencoded({ extended: true }))
 
@@ -46,10 +47,12 @@ io.of("/").on("connect", (socket) => {
 
 io.of("/info").on("connect", (socket) => {
     const sshInfo = new NodeSSH()
+    let disconnect = false
 
     console.log("Connected on /info")
-
-    if (typeof host != "undefined") {
+    if (typeof host != "undefined" && ! connected ) {
+        disconnect = true
+        connected = true
         sshInfo.connect(host).then(() => {
             let interval = setInterval(() => {
                 if (sshInfo.isConnected()) {
@@ -66,12 +69,18 @@ io.of("/info").on("connect", (socket) => {
                     clearInterval(interval)
                 }
             }, 300)
+        }).catch((err) => {
+            console.log("Info :", err.toString("utf-8"))
+            socket.emit("redirectRoot")
         })
     } else {
         socket.emit("redirectRoot")
     }
 
     socket.on("disconnect", () => {
+        if (disconnect) {
+            connected = false
+        }
         console.log("Disconnected from /info")
         sshInfo.dispose()
     })
