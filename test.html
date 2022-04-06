@@ -12,17 +12,14 @@
     <h1></h1>
     <h4></h4>
     <p></p>
-    <button onclick="initRoutes('test')">Test</button>
+    <button onclick="initRoutes('info')">Info</button>
 
     <script src="socket.io/socket.io.js"></script>
     <script>
-        const socket = io("/info")
+        const socket = io("/test")
 
         socket.on("redirectRoot", () => {
             window.location.href = "/"
-        })
-        socket.on("hostname", (msg) => {
-            document.querySelector("h1").innerText = msg
         })
         socket.on("uptime", (msg) => {
             document.querySelector("h4").innerText = msg

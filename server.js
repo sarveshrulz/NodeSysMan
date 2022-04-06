@@ -4,8 +4,11 @@ const http = require("http").Server(app);
 const io = require("socket.io")(http);
 const path = require("path")
 const port = process.env.PORT || 3000
-const {NodeSSH} = require("node-ssh")
-let connected = false
+const { NodeSSH } = require("node-ssh");
+const ssh = new NodeSSH
+
+let allowRoutes = false
+let keepSsh = false
 
 app.use(express.urlencoded({ extended: true }))
 
@@ -17,18 +20,20 @@ app.get("/info", (req, res) => {
     res.sendFile(path.join(__dirname, "info.html"));
 })
 
-app.post("/", (req, res) => {
-    const sshAuth = new NodeSSH()
+app.get("/test", (req, res) => {
+    res.sendFile(path.join(__dirname, "test.html"));
+})
 
-    host = {
+app.post("/", (req, res) => {
+    let host = {
         host: "localhost",
         username: req.body.username,
         password: req.body.password
     }
 
-    sshAuth.connect(host).then(() => {
+    ssh.connect(host).then(() => {
+        allowRoutes = true
         res.redirect("/info")
-        sshAuth.dispose()
     }).catch((err) => {
         res.redirect("/")
         setTimeout(() => {
@@ -46,43 +51,80 @@ io.of("/").on("connect", (socket) => {
 })
 
 io.of("/info").on("connect", (socket) => {
-    const sshInfo = new NodeSSH()
-    let disconnect = false
-
     console.log("Connected on /info")
-    if (typeof host != "undefined" && ! connected ) {
-        disconnect = true
-        connected = true
-        sshInfo.connect(host).then(() => {
-            let interval = setInterval(() => {
-                if (sshInfo.isConnected()) {
-                    sshInfo.execCommand("cat /etc/hostname").then((result) => {
-                        socket.emit("hostname", result.stdout)
-                    })
-                    sshInfo.execCommand("uptime | awk '{ print $3 $4}'").then((result) => {
-                        socket.emit("uptime", result.stdout)
-                    })
-                    sshInfo.execCommand("free -m").then((result) => {
-                        socket.emit("memory", result.stdout)
-                    })
-                } else {
-                    clearInterval(interval)
-                }
-            }, 300)
-        }).catch((err) => {
-            console.log("Info :", err.toString("utf-8"))
-            socket.emit("redirectRoot")
-        })
+
+    if (allowRoutes) {
+        allowRoutes = false
+        keepSsh = false
+        let interval = setInterval(() => {
+            if (ssh.isConnected()) {
+                ssh.execCommand("cat /etc/hostname").then((result) => {
+                    socket.emit("hostname", result.stdout)
+                })
+                ssh.execCommand("uptime | awk '{ print $3 $4}'").then((result) => {
+                    socket.emit("uptime", result.stdout)
+                })
+                ssh.execCommand("free -m").then((result) => {
+                    socket.emit("memory", result.stdout)
+                })
+            } else {
+                clearInterval(interval)
+            }
+        }, 300)
     } else {
         socket.emit("redirectRoot")
+        setTimeout(() => {
+            io.of("/").emit("authFailed", "Please login first")
+        }, 200)
     }
 
+    socket.on("initRoutes", () => {
+        allowRoutes = true
+        keepSsh = true
+    })
+
     socket.on("disconnect", () => {
-        if (disconnect) {
-            connected = false
-        }
         console.log("Disconnected from /info")
-        sshInfo.dispose()
+        if (!keepSsh) {
+            ssh.dispose()
+        }
+    })
+})
+
+io.of("/test").on("connect", (socket) => {
+    console.log("Connected on /test")
+    if (allowRoutes) {
+        allowRoutes = false
+        keepSsh = false
+        let interval = setInterval(() => {
+            if (ssh.isConnected()) {
+                ssh.execCommand("uptime | awk '{ print $3 $4}'").then((result) => {
+                    socket.emit("uptime", result.stdout)
+                })
+                ssh.execCommand("free -m").then((result) => {
+                    socket.emit("memory", result.stdout)
+                })
+            } else {
+                clearInterval(interval)
+            }
+        }, 300)
+    } else {
+        socket.emit("redirectRoot")
+        setTimeout(() => {
+            io.of("/").emit("authFailed", "Please login first")
+        }, 200)
+    }
+
+    socket.on("initRoutes", () => {
+        allowRoutes = true
+        keepSsh = true
+    })
+
+    socket.on("disconnect", () => {
+        console.log("Disconnected from /info")
+        if (!keepSsh) {
+            ssh.dispose()
+        }
     })
 })
 
