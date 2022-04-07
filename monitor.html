@@ -58,8 +58,8 @@
                 style="height: 20rem; padding: 1rem; background-color: #1D1F21; border-radius: 1rem; margin: 1rem;">
                 <div style="margin-top: 5rem;">
                     <div>
-                        <p style="font-size: 2.5rem" class="user"></p>
-                        <p style="font-size: 1.3rem;">User</p>
+                        <p style="font-size: 2.5rem" class="cpu"></p>
+                        <p style="font-size: 1.3rem;">CPU</p>
                     </div>
                 </div>
             </div>
@@ -67,17 +67,8 @@
                 style="height: 20rem; padding: 1rem; background-color: #1D1F21; border-radius: 1rem; margin: 1rem;">
                 <div style="margin-top: 5rem;">
                     <div>
-                        <p style="font-size: 2.5rem" class="hostname"></p>
-                        <p style="font-size: 1.3rem;">Hostname</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-4"
-                style="height: 20rem; padding: 1rem; background-color: #1D1F21; border-radius: 1rem; margin: 1rem;">
-                <div style="margin-top: 5rem;">
-                    <div>
-                        <p style="font-size: 2.5rem" class="os"></p>
-                        <p style="font-size: 1.3rem;">Operating Sysyem</p>
+                        <p style="font-size: 2.5rem" class="cpuTemp"></p>
+                        <p style="font-size: 1.3rem;">CPU Temp</p>
                     </div>
                 </div>
             </div>
@@ -85,8 +76,8 @@
                 style="height: 20rem; padding: 1rem; background-color: #1D1F21; border-radius: 1rem; margin: 1rem;">
                 <div style="margin-top: 5rem;">
                     <div>
-                        <p style="font-size: 2.5rem" class="kernel"></p>
-                        <p style="font-size: 1.3rem;">Kernel</p>
+                        <p style="font-size: 2.5rem" class="cpuGov"></p>
+                        <p style="font-size: 1.3rem;">CPU Gov</p>
                     </div>
                 </div>
             </div>
@@ -94,8 +85,17 @@
                 style="height: 20rem; padding: 1rem; background-color: #1D1F21; border-radius: 1rem; margin: 1rem;">
                 <div style="margin-top: 5rem;">
                     <div>
-                        <p style="font-size: 2.5rem" class="uptime"></p>
-                        <p style="font-size: 1.3rem;">Uptime</p>
+                        <p style="font-size: 2.5rem" class="memory"></p>
+                        <p style="font-size: 1.3rem;">RAM</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-4"
+                style="height: 20rem; padding: 1rem; background-color: #1D1F21; border-radius: 1rem; margin: 1rem;">
+                <div style="margin-top: 5rem;">
+                    <div>
+                        <p style="font-size: 2.5rem" class="swap"></p>
+                        <p style="font-size: 1.3rem;">Swap</p>
                     </div>
                 </div>
             </div>
@@ -113,25 +113,25 @@
         crossorigin="anonymous"></script>
     <script src="socket.io/socket.io.js"></script>
     <script>
-        const socket = io("/info")
+        const socket = io("/monitor")
 
         socket.on("redirectRoot", () => {
             window.location.href = "/"
         })
-        socket.on("user", (msg) => {
-            document.querySelector(".user").innerText = msg
+        socket.on("cpu", (msg) => {
+            document.querySelector(".cpu").innerText = msg+"%"
         })
-        socket.on("hostname", (msg) => {
-            document.querySelector(".hostname").innerText = msg
+        socket.on("cpuTemp", (msg) => {
+            document.querySelector(".cpuTemp").innerText = msg+"°C"
         })
-        socket.on("os", (msg) => {
-            document.querySelector(".os").innerText = msg
+        socket.on("cpuGov", (msg) => {
+            document.querySelector(".cpuGov").innerText = msg
         })
-        socket.on("kernel", (msg) => {
-            document.querySelector(".kernel").innerText = msg
+        socket.on("memory", (msg) => {
+            document.querySelector(".memory").innerText = msg+"%"
         })
-        socket.on("uptime", (msg) => {
-            document.querySelector(".uptime").innerText = msg
+        socket.on("swap", (msg) => {
+            document.querySelector(".swap").innerText = msg+"%"
         })
 
         let initRoutes = (href) => {
